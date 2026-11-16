@@ -1,0 +1,14 @@
+#cupid-letter-frame .letter-content{white-space:normal}
+#cupid-letter-frame .letter-paragraph{margin:0 0 .85em;white-space:pre-wrap;line-height:inherit}
+#cupid-letter-frame .letter-paragraph:last-child{margin-bottom:0}
+#cupid-letter-frame .letter-word{display:inline-block;white-space:pre}
+
+#bqCta,#letter-next-cta{min-width:154px;min-height:48px;padding:13px 30px;gap:0;border:1px solid #dfb195b3;border-radius:999px;background:linear-gradient(135deg,#49212beb,#25131ce8);box-shadow:0 6px 22px #0005,inset 0 1px 0 #fff1db1f;transition:none}
+#bqCta.visible,#letter-next-cta.visible{opacity:1;visibility:visible;pointer-events:auto;transform:none;transition:none;animation:none}
+#bqCta .love-cta-label,#letter-next-cta .love-cta-label{font:600 15px/1.3 'Be Vietnam Pro',system-ui,sans-serif;color:#ffead8;letter-spacing:.02em;background:none;backdrop-filter:none;-webkit-backdrop-filter:none;text-shadow:none;padding:0}
+#bqCta:hover,#letter-next-cta:hover{background:#512b33;border-color:#f6d0aa}
+#bqCta:focus-visible,#letter-next-cta:focus-visible{outline:2px solid #ffe5bd;outline-offset:5px}
+#bqCta:disabled{cursor:wait;opacity:.8}
+#bqCta[hidden]{display:none!important}
+#bqCta:active,#letter-next-cta:active{transform:scale(.97)}
+@media(max-height:460px){#bqCta,#letter-next-cta{min-width:135px;min-height:40px;padding:9px 24px}#bqCta .love-cta-label,#letter-next-cta .love-cta-label{font-size:13px}}

@@ -1,0 +1,18 @@
+# Local development and temporary files
+node_modules/
+.env
+.env.*
+!.env.example
+*.log
+*.tmp
+*.bak
+*.zip
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+coverage/
+playwright-report/
+test-results/
+_site/

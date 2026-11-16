@@ -1,0 +1,47 @@
+@font-face{font-family:TributeHand;src:url('../../../assets/fonts/dancing.ttf') format('truetype');font-weight:600;font-display:swap}
+@font-face{font-family:TributeSans;src:url('../../../assets/fonts/vietnam.ttf') format('truetype');font-weight:400;font-display:swap}
+@font-face{font-family:FireworkSerif;src:url('../../../assets/fonts/lora-bold.ttf') format('truetype');font-weight:700;font-display:swap}
+#finaleScene{font-family:TributeSans,'Segoe UI',sans-serif}
+.fn-atmosphere{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+#finaleScene .fn-hills{z-index:1;pointer-events:none}
+.tribute-hero{z-index:3}
+#finaleScene .fn-panel,#finaleScene .fn-hint{z-index:4}
+.tribute-hero{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);width:min(760px,84vw);text-align:center;color:#fff3df;isolation:isolate;pointer-events:none;opacity:0;visibility:hidden}
+.tribute-hero:before{content:'';position:absolute;z-index:-1;inset:-45px -55px;background:radial-gradient(ellipse,#100f1de8 0%,#10101ccc 32%,#10101c80 52%,transparent 74%);pointer-events:none}
+.tribute-eyebrow{margin:0 0 16px;color:#e7cf9e;font:400 11px/1.8 TributeSans,sans-serif;letter-spacing:.28em;text-shadow:0 2px 6px #000}
+.tribute-date{display:flex;justify-content:center;align-items:center;gap:22px;font:clamp(70px,8vw,118px)/1 Georgia,'Times New Roman',serif;color:#ffedc1;letter-spacing:-.035em;text-shadow:0 3px 2px #090812,0 0 35px #eec06930}
+.tribute-date-flower{font:28px Georgia,serif;color:#e9b5bc;letter-spacing:0}
+.tribute-title{margin:14px 0 10px;font:600 clamp(44px,5.5vw,76px)/1.25 TributeHand,cursive;color:#fff2dc;text-shadow:0 3px 2px #0a0912,0 0 25px #f1b4c025}
+.tribute-rule{display:flex;align-items:center;justify-content:center;gap:17px;color:#d7ad72;font:18px Georgia,serif;margin:8px auto 18px;max-width:280px}
+.tribute-rule:before,.tribute-rule:after{content:'';height:1px;width:95px;background:linear-gradient(90deg,transparent,#d9b785)}
+.tribute-rule:after{transform:rotate(180deg)}
+.tribute-caption{font:400 clamp(15px,1.5vw,20px)/1.6 TributeSans,sans-serif;color:#f0cc9c;margin:0 0 12px;text-shadow:0 2px 5px #000;min-height:1.6em}
+.tribute-quote{font:600 clamp(21px,2.2vw,29px)/1.55 TributeHand,cursive;color:#f4d7dc;margin:0 auto;max-width:29em;text-shadow:0 2px 6px #000}
+.tribute-signature{font:400 12px/1.6 TributeSans,sans-serif;color:#c7b7b0;margin:18px 0 0;text-shadow:0 2px 5px #000}
+.tribute-sky-frame{position:absolute;inset:22px 26px;border:1px solid #d3ab692e;border-radius:3px;pointer-events:none;mask-image:linear-gradient(135deg,#000,transparent 20%,transparent 80%,#000)}
+#finaleScene .fn-panel{opacity:0;visibility:hidden;transform:none;bottom:max(24px,env(safe-area-inset-bottom));pointer-events:none;gap:0}
+#finaleScene.panel-on .fn-panel{opacity:1;visibility:visible}
+#finaleScene .fn-msg,#finaleScene .fn-counter{display:none}
+#finaleScene .fn-actions{pointer-events:none;animation:none}
+#finaleScene.panel-on .fn-actions{pointer-events:auto}
+#finaleScene .fn-btn{font-family:TributeSans,sans-serif;font-size:12px;border:1px solid #d7b57a80;background:#18141fcc;color:#f1dbb7;padding:12px 25px;box-shadow:0 5px 22px #0003}
+#finaleScene .fn-btn:hover{background:#302331;border-color:#f5d79b;box-shadow:0 5px 25px #d6a95b20}
+#finaleScene .fn-hills{height:24vh;--fl:#d9b87b}
+#finaleScene .g-mid{fill:#111622}#finaleScene .g-near{fill:#080b13}
+#finaleScene #fnFarG stop:first-child{stop-color:#2b3346}#finaleScene #fnFarG stop:last-child{stop-color:#141927}
+#finaleScene .fn-rim{stroke-width:1}
+#finaleScene .fn-hint{font:11px/1.5 TributeSans,sans-serif;top:auto;bottom:85px;padding:7px 15px;color:#dbcab4;background:#100e19b0}
+#finaleScene.panel-on .tribute-hero{opacity:1;visibility:visible;animation:tribute-arrive 1.3s ease both}
+@keyframes tribute-arrive{from{opacity:0;transform:translate(-50%,calc(-50% + 12px))}to{opacity:1;transform:translate(-50%,-50%)}}
+@media(orientation:portrait){
+ .tribute-hero{top:44%;width:88vw}.tribute-hero:before{inset:-35px -15px}.tribute-eyebrow{font-size:8px;letter-spacing:.16em;margin-bottom:22px}
+ .tribute-date{font-size:85px;gap:16px}.tribute-date-flower{font-size:23px}.tribute-title{font-size:49px;margin-top:20px}.tribute-caption{font-size:13px;margin-bottom:14px;min-height:3.2em;padding:0 10px}
+ .tribute-quote{font-size:23px;max-width:270px}.tribute-signature{font-size:10px;margin-top:22px}.tribute-sky-frame{inset:15px}.tribute-rule{max-width:220px;margin-bottom:16px}
+ #finaleScene .fn-hills{height:21vh}#finaleScene .fn-btn{font-size:11px;padding:11px 22px}#finaleScene .fn-hint{font-size:10px;bottom:78px}
+}
+@media(orientation:landscape) and (max-height:600px){
+ .tribute-hero{top:43%;width:65vw}.tribute-eyebrow{font-size:8px;margin-bottom:7px}.tribute-date{font-size:55px;gap:14px}.tribute-date-flower{font-size:17px}
+ .tribute-title{font-size:39px;margin:4px 0}.tribute-rule{margin:3px auto 7px;font-size:12px}.tribute-caption{font-size:12px;margin-bottom:5px}.tribute-quote{font-size:19px}.tribute-signature{font-size:9px;margin-top:7px}
+ #finaleScene .fn-panel{bottom:12px}#finaleScene .fn-btn{padding:8px 18px;font-size:10px}#finaleScene .fn-hint{bottom:51px;font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){#finaleScene.panel-on .tribute-hero{animation:none}}
