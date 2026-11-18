@@ -5,7 +5,7 @@
   const scenes = ['welcome', 'classroom', 'flower', 'memories', 'gift', 'galaxy'];
   let current = 'welcome', history = [], currentPhoto = 0, transitionTimer, toastTimer, resizeTimer;
   let filmFrame = 0, previousFrame = 0, filmDrag = null, suppressFilmClick = false, resumeAfter = 0, filmPosition = 0;
-  const photos = config.photos.length ? config.photos : [{ src:'assets/images/start-logo.png', caption:'Gửi ngàn lời tri ân', alt:'Ngày Nhà giáo Việt Nam' }];
+  const photos = config.photos.length ? config.photos : [{ src:'assets/images/start-logo.png', caption:'Ảnh của lớp mình', alt:'Ngày Nhà giáo Việt Nam' }];
   const music = $('#music'); let wantsMusic = false;
   const audioOwner = `${Date.now()}-${Math.random()}`;
   const audioChannel = typeof window.BroadcastChannel==='function' ? new BroadcastChannel('teachers-day-background-music') : null;
@@ -33,7 +33,7 @@
     button.addEventListener('click', () => openPhoto(index)); return button;
   }
   document.querySelectorAll('[data-photo-wall]').forEach(wall => photos.slice(0,3).forEach((p,i) => wall.append(makePhoto(p,i,'polaroid'))));
-  photos.slice(0,2).forEach((photo,index)=>$('[data-bloom-photos]').append(makePhoto(photo,index,'polaroid')));
+  photos.slice(0,2).forEach((photo,index)=>$('[data-bloom-photos]').append(makePhoto({...photo,caption:['Lớp 11 Tin','Cô và chúng em'][index]},index,'polaroid')));
   // Two identical halves make the film loop without a visible jump.
   const filmCount = Math.max(9, photos.length);
   for (let half = 0; half < 2; half++) for (let i = 0; i < filmCount; i++) {
@@ -47,7 +47,6 @@
   function updateMusic() { const audio=current==='gift'?$('#gift-frame').contentWindow?.GiftAudioControls:null; const playing=current==='gift'?!!(audio?.playing&&!audio?.muted):!music.paused; $('#music-button').setAttribute('aria-pressed',String(playing)); $('#music-button').setAttribute('aria-label',playing?'Tắt âm thanh':'Bật âm thanh'); $('#music-icon').textContent=playing?'♫':'♪'; }
   async function playMusic() { if(current==='gift')return; try { await music.play(); } catch { wantsMusic=false; updateMusic(); toast('Chạm nút ♪ để bật nhạc nền nhé.'); } }
   music.addEventListener('play',updateMusic); music.addEventListener('pause',updateMusic);
-  function closeMenu() { $('#scene-menu').hidden=true; $('#menu-button').setAttribute('aria-expanded','false'); }
   function stopFilm() { cancelAnimationFrame(filmFrame); filmFrame=0; previousFrame=0; }
   function paintFilm() {
     const items=$('#film-track').children;
@@ -68,7 +67,7 @@
   function showScene(name, options={}) {
     if(name==='letter') name='flower';
     if(!scenes.includes(name)||name===current) return;
-    clearTimeout(transitionTimer); stopFilm(); closeMenu();
+    clearTimeout(transitionTimer); stopFilm();
     const leavingGift=current==='gift', leavingGalaxy=current==='galaxy';
     if(leavingGift && name==='galaxy') {
       const audio=$('#gift-frame').contentWindow?.GiftAudioControls;
@@ -92,7 +91,6 @@
     updateMusic();
     $('#experience-tools').hidden=name==='welcome'; $('#back-button').disabled=!history.length;
     document.body.classList.toggle('night-mode',['flower','gift','galaxy'].includes(name));
-    document.querySelectorAll('#scene-menu [data-go]').forEach(button=>{button.classList.toggle('current',button.dataset.go===name);if(button.dataset.go===name)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current');});
     if(name==='welcome') { wantsMusic=false;music.pause(); }
     if(name==='classroom') setTimeout(()=>{if(current===name)next.classList.add('finished');},effects.reducedMotion()?0:8000);
     if(name==='memories') { resumeAfter=0; requestAnimationFrame(()=>effects.collage($('#collage-canvas'),photos)); startFilm(); }
@@ -100,7 +98,9 @@
     if(name==='gift') {
       $('#gift-loading').hidden=false;
       const source=new URL($('#gift-frame').dataset.src,location.href);
-      if(leavingGalaxy || new URLSearchParams(location.search).get('resume')==='finale')source.searchParams.set('resume','finale');
+      const resume=new URLSearchParams(location.search).get('resume');
+      if(leavingGalaxy)source.searchParams.set('resume','finale');
+      else if(['finale','fireworks'].includes(resume))source.searchParams.set('resume',resume);
       $('#gift-frame').src=source.href;
     }
     if(name==='galaxy')$('#galaxy-frame').src=$('#galaxy-frame').dataset.src;
@@ -131,9 +131,7 @@
   $('#cancel-passcode').addEventListener('click',()=>$('#passcode-dialog').close());
   $('#music-button').addEventListener('click',()=>{if(current==='gift'){$('#gift-frame').contentWindow?.GiftAudioControls?.toggle();updateMusic();return;}wantsMusic=music.paused;if(wantsMusic){playMusic();}else{music.pause();}});
   $('#back-button').addEventListener('click',()=>{const previous=history.pop();if(previous)showScene(previous,{record:false});});
-  $('#menu-button').addEventListener('click',()=>{const opening=$('#scene-menu').hidden;$('#scene-menu').hidden=!opening;$('#menu-button').setAttribute('aria-expanded',String(opening));if(opening)$('#scene-menu button.current')?.focus();});
-  document.addEventListener('click',e=>{if(!e.target.closest('#scene-menu,#menu-button'))closeMenu();});
-  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#scene-menu').hidden){closeMenu();$('#menu-button').focus();}if($('#photo-dialog').open&&['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();updatePhoto(currentPhoto+(e.key==='ArrowRight'?1:-1));}});
+  document.addEventListener('keydown',e=>{if($('#photo-dialog').open&&['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();updatePhoto(currentPhoto+(e.key==='ArrowRight'?1:-1));}});
   $('#close-photo').addEventListener('click',()=>$('#photo-dialog').close());$('#photo-prev').addEventListener('click',()=>updatePhoto(currentPhoto-1));$('#photo-next').addEventListener('click',()=>updatePhoto(currentPhoto+1));
   $('#photo-dialog').addEventListener('click',e=>{if(e.target===$('#photo-dialog'))$('#photo-dialog').close();});
   function stepFilm(direction){resumeAfter=performance.now()+1200;filmPosition+=direction*300;paintFilm();}

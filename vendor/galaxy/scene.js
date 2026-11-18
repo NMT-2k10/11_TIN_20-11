@@ -1,10 +1,12 @@
 /* Galaxy visuals adapted from the public browser source at
  * https://love-galaxy-pro.netlify.app/ (author credit: Luc Thien Phong).
- * Local integration: heart-triggered cinematic intro, no letter/help, local photo viewer.
+ * Local integration: symbol-triggered cinematic intro, no letter/help, local photo viewer.
  * Three.js license is preserved in vendor/LICENSE.
  */
 
         import { createGalaxyCinematic } from "./cinematic.js";
+        import { createKnowledgeSymbol } from "./knowledge-symbol.js";
+        import { galaxyViewport, canvasPointer } from "./layout.js";
         import * as THREE from "./vendor/three.module.js";
         import { OrbitControls } from "./vendor/examples/jsm/controls/OrbitControls.js";
         import { EffectComposer } from "./vendor/examples/jsm/postprocessing/EffectComposer.js";
@@ -15,12 +17,12 @@
         const gift = window.parent.GIFT_CONFIG || {};
         const configuredPhotos = gift.galaxy?.photos || gift.photos || [];
         const root = new URL('../../', location.href);
-        const galleryPhotos = (configuredPhotos.length ? configuredPhotos : [{src:'assets/images/class-1.jpg',caption:'Kỷ niệm bên thầy cô'}]).map(photo => {
+        const galleryPhotos = (configuredPhotos.length ? configuredPhotos : [{src:'assets/images/class-1.jpg',caption:'Kỷ niệm bên cô'}]).map(photo => {
             const item = typeof photo === 'string' ? {src:photo} : photo;
             return {...item, src:new URL(item.src,root).href};
         });
         const __APP_CONFIG__ = {
-            title: gift.galaxy?.title || 'Tri ân thầy cô · 20/11',
+            title: gift.galaxy?.title || 'Chúc mừng ngày Nhà giáo Việt Nam',
             messages: gift.galaxy?.messages,
             images: galleryPhotos.map(photo => photo.src),
         };
@@ -28,10 +30,11 @@
 
         let scene = new THREE.Scene();
         // scene.background = null → canvas trong suốt, hiện gradient CSS phía sau
-        let camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 1000);
+        let viewport = galaxyViewport(innerWidth, innerHeight);
+        let camera = new THREE.PerspectiveCamera(60, viewport.width / viewport.height, 0.1, 1000);
         // Start inside the photo annulus, just above the image plane.
-        const defaultCameraPosition = new THREE.Vector3(0, 3, innerWidth < 768 ? 39 : 34);
-        const defaultCameraTarget = new THREE.Vector3(0, 6, 0);
+        const defaultCameraPosition = new THREE.Vector3(0, 9, innerWidth < 768 ? 56 : 39);
+        const defaultCameraTarget = new THREE.Vector3(0, 11, 0);
         camera.position.copy(defaultCameraPosition);
         camera.lookAt(defaultCameraTarget);
         let renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -42,7 +45,7 @@
         const IS_MOBILE = innerWidth < 768 || window.matchMedia('(pointer: coarse)').matches;
         const PIXEL_RATIO = Math.min(window.devicePixelRatio || 1, IS_MOBILE ? 1.5 : 2);
         renderer.setPixelRatio(PIXEL_RATIO);
-        renderer.setSize(innerWidth, innerHeight);
+        renderer.setSize(viewport.width, viewport.height);
         document.body.appendChild(renderer.domElement);
 
         // === Shooting Stars (CSS DOM, bê từ trai_tim-tiktok_mua/index.main.js:177-211) ===
@@ -51,7 +54,7 @@
         shootingStarsContainer.id = 'shooting-stars';
         document.body.appendChild(shootingStarsContainer);
         (function createShootingStars() {
-            const numShootingStars = reducedMotion ? 0 : 20;
+            const numShootingStars = reducedMotion ? 0 : (IS_MOBILE ? 5 : 9);
             for (let i = 0; i < numShootingStars; i++) {
                 const shootingStar = document.createElement('div');
                 shootingStar.className = 'shooting-star';
@@ -68,13 +71,14 @@
             }
         })();
         window.addEventListener("resize", event => {
-            camera.aspect = innerWidth / innerHeight;
+            viewport = galaxyViewport(innerWidth, innerHeight);
+                camera.aspect = viewport.width / viewport.height;
             camera.updateProjectionMatrix();
             renderer.setPixelRatio(PIXEL_RATIO);
-            renderer.setSize(innerWidth, innerHeight);
+            renderer.setSize(viewport.width, viewport.height);
             if (composer) {
                 composer.setPixelRatio(PIXEL_RATIO);
-                composer.setSize(innerWidth, innerHeight);
+                composer.setSize(viewport.width, viewport.height);
             }
         })
         let controls = new OrbitControls(camera, renderer.domElement);
@@ -149,6 +153,7 @@
                     attribute vec4 shift;
                     attribute float partType;
                     varying vec3 vColor;
+                    varying float vLayerOpacity;
                     ${shader.vertexShader}
                 `.replace(
                     `gl_PointSize = size;`,
@@ -156,12 +161,13 @@
                 ).replace(
                     `#include <color_vertex>`,
                     `#include <color_vertex>
+                    vLayerOpacity = partType < 0.5 ? 0.48 : 0.60;
                     if (partType > 1.5) {
-                        vColor = vec3(220., 40., 55.) / 255.;   // ring: đỏ tươi
+                        vColor = vec3(227., 159., 119.) / 255.; // warm copper ring
                     } else if (partType > 0.5) {
-                        vColor = vec3(140., 25., 40.) / 255.;   // đĩa xoáy galaxy: đỏ đậm (maroon)
+                        vColor = vec3(125., 72., 78.) / 255.;   // muted rose galaxy disc
                     } else {
-                        vColor = vec3(255., 90., 90.) / 255.;   // cầu: đỏ hồng sáng
+                        vColor = vec3(245., 179., 132.) / 255.; // warm light shared with the book
                     }
                 `).replace(
                         `#include <begin_vertex>`,
@@ -174,6 +180,7 @@
                 // console.log(shader.vertexShader);
                 shader.fragmentShader = `
                 varying vec3 vColor;
+                varying float vLayerOpacity;
                 ${shader.fragmentShader}
                 `.replace(
                     `#include <clipping_planes_fragment>`,
@@ -182,7 +189,7 @@
                     if (d > 0.5) discard;
                 `).replace(
                         `vec4 diffuseColor = vec4( diffuse, opacity );`,
-                        `vec4 diffuseColor = vec4( vColor, smoothstep(0.5, 0.1, d) );`
+                        `vec4 diffuseColor = vec4( vColor, smoothstep(0.5, 0.1, d) * vLayerOpacity );`
                     );
                 // console.log(shader.fragmentShader);
             }
@@ -202,7 +209,7 @@
         const starGeo = new THREE.BufferGeometry();
         starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
         const starMat = new THREE.PointsMaterial({
-            color: 0xff5a5a,      // đỏ hồng giống hạt lõi cầu rgb(255,90,90)
+            color: 0xe9c6ad,
             size: 0.7,
             transparent: true,
             opacity: 0.7,
@@ -309,362 +316,78 @@
             return n;
         }
 
-        const heartInitialColor = new THREE.Color(255 / 255, 90 / 255, 90 / 255);  // y hệt màu hạt galaxy: vec3(255,90,90)
         const circleTexture = generateGlowCircleTexture();
+        const SYMBOL_SCALE = innerWidth < 768 ? 0.96 : 1.28;
+        const SYMBOL_Y = 19;
+        const knowledgeSymbol = createKnowledgeSymbol({
+            THREE, makeMat, texture: circleTexture, mobile: IS_MOBILE, reducedMotion
+        });
+        const symbolGroup = knowledgeSymbol.group;
+        symbolGroup.scale.setScalar(SYMBOL_SCALE);
+        symbolGroup.position.set(0, SYMBOL_Y, 0);
+        scene.add(symbolGroup);
 
-        // --- heartShape (L583-591) ---
-        const heartShape = new THREE.Shape();
-        heartShape.moveTo(5, 2);
-        heartShape.bezierCurveTo(5, 2, 4, 0, 0, 0);
-        heartShape.bezierCurveTo(-6, 0, -6, 7, -6, 7);
-        heartShape.bezierCurveTo(-6, 11, -3, 15.4, 5, 19);
-        heartShape.bezierCurveTo(12, 15.4, 16, 11, 16, 7);
-        heartShape.bezierCurveTo(16, 7, 16, 0, 10, 0);
-        heartShape.bezierCurveTo(7, 0, 5, 2, 5, 2);
-        const polyPts = heartShape.getPoints(100);
-
-        function isPointInsidePolygon(t, e) {
-            let o = false;
-            let a = 0;
-            for (let s = e.length - 1; a < e.length; s = a++) {
-                const r = e[a].x, n = e[a].y, i = e[s].x, c = e[s].y;
-                if (n > t.y != c > t.y && t.x < ((i - r) * (t.y - n)) / (c - n) + r) o = !o;
-            }
-            return o;
+        // Restore the greeting to its original world position, with a dark
+        // feathered halo and a crisp outline instead of a full-width panel.
+        function greetingSprite(width, height, worldWidth, y) {
+            const canvas = document.createElement('canvas');
+            canvas.width = width; canvas.height = height;
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            const material = new THREE.SpriteMaterial({map:texture, transparent:true, depthTest:false, depthWrite:false});
+            material.toneMapped = false;
+            const sprite = new THREE.Sprite(material);
+            sprite.scale.set(worldWidth, worldWidth * height / width, 1);
+            sprite.position.set(0, y, 12);
+            sprite.renderOrder = 1200;
+            scene.add(sprite);
+            return {canvas, texture, context:canvas.getContext('2d')};
         }
-        const polyShift = polyPts.map((t) => ({ x: t.x - 5, y: t.y - 7 }));
-        const BORDER_THRESHOLD = 0.1 * (Math.max(...polyPts.map((t) => t.x)) - Math.min(...polyPts.map((t) => t.x)));
-        function calculateMinimumDistanceToBorder(t, e) {
-            let a = Infinity;
-            for (let s = 0; s < polyShift.length; s++) {
-                const r = polyShift[s];
-                const n = polyShift[(s + 1) % polyShift.length];
-                const i = n.x - r.x, c = n.y - r.y;
-                const l = ((t - r.x) * i + (e - r.y) * c) / (i * i + c * c);
-                const x = Math.max(0, Math.min(1, l));
-                const m = (t - (r.x + x * i)) ** 2 + (e - (r.y + x * c)) ** 2;
-                if (m < a) a = m;
-            }
-            return Math.sqrt(a);
+        const titleGreeting = greetingSprite(1536, 220, innerWidth < 768 ? 10.8 : 15, 8.8);
+        const messageGreeting = greetingSprite(1024, 160, innerWidth < 768 ? 9.8 : 13.6, 7.1);
+        function paintGreeting(target, text, family, maxSize, color) {
+            const {canvas, context:c, texture} = target;
+            c.clearRect(0, 0, canvas.width, canvas.height);
+            let size = maxSize;
+            do { c.font = '500 ' + size + 'px ' + family; size -= 2; }
+            while (c.measureText(text).width > canvas.width - 100 && size > 24);
+            const textWidth = c.measureText(text).width;
+            c.save();
+            c.translate(canvas.width / 2, canvas.height / 2);
+            c.scale(Math.min(canvas.width / 2, textWidth / 2 + 90), canvas.height * 0.48);
+            const halo = c.createRadialGradient(0, 0, 0.25, 0, 0, 1);
+            halo.addColorStop(0, 'rgba(4,5,13,0.86)');
+            halo.addColorStop(0.58, 'rgba(4,5,13,0.62)');
+            halo.addColorStop(1, 'rgba(4,5,13,0)');
+            c.fillStyle = halo; c.fillRect(-1, -1, 2, 2); c.restore();
+            c.textAlign = 'center'; c.textBaseline = 'middle'; c.lineJoin = 'round';
+            c.strokeStyle = 'rgba(3,4,12,0.95)'; c.lineWidth = maxSize > 60 ? 7 : 5;
+            c.strokeText(text, canvas.width / 2, canvas.height / 2);
+            c.fillStyle = color;
+            c.shadowColor = '#000'; c.shadowBlur = 3;
+            c.fillText(text, canvas.width / 2, canvas.height / 2);
+            c.shadowBlur = 0; texture.needsUpdate = true;
         }
-
-        // --- Lấy mẫu 7000 hạt (L781-822) ---
-        const hPositions = [];
-        const hxs = polyPts.map((t) => t.x);
-        const hys = polyPts.map((t) => t.y);
-        const minX = Math.min(...hxs), maxX = Math.max(...hxs);
-        const minY = Math.min(...hys), maxY = Math.max(...hys);
-        const threshold = minY + (maxY - minY) / 6;
-        while (hPositions.length / 3 < (IS_MOBILE ? 12000 : 25000)) {
-            const t = Math.random() * (maxX - minX) + minX;
-            const e = Math.random() * (maxY - minY) + minY;
-            if (isPointInsidePolygon({ x: t, y: e }, polyPts)) {
-                let o = Infinity;
-                for (let a = 0; a < polyPts.length; a++) {
-                    const s = polyPts[a];
-                    const r = polyPts[(a + 1) % polyPts.length];
-                    const n = r.x - s.x, i = r.y - s.y;
-                    const c = ((t - s.x) * n + (e - s.y) * i) / (n * n + i * i);
-                    const l = Math.max(0, Math.min(1, c));
-                    const x = t - (s.x + l * n);
-                    const m = e - (s.y + l * i);
-                    const _ = x * x + m * m;
-                    if (_ < o) o = _;
-                }
-                const a = 1 / (1 + 2 * Math.sqrt(o));
-                if (Math.random() < a) {
-                    const o = 3.6 * (Math.random() - 0.5);
-                    hPositions.push(t - 5, e - 7, o);
-                }
-            }
+        const messages = __APP_CONFIG__.messages?.length ? __APP_CONFIG__.messages : [__APP_CONFIG__.title];
+        let lastGreeting = -1;
+        function repaintGreeting() {
+            paintGreeting(titleGreeting, __APP_CONFIG__.title, '"Pacifico", cursive', 86, '#ffe2a8');
+            paintGreeting(messageGreeting, messages[Math.max(0, lastGreeting)], '"Mali", sans-serif', 46, '#fff3df');
         }
-
-        const heartWidth = maxX - minX;
-        const INDENT_Y = maxY - 0.25 * (maxY - minY);
-        const INDENT_HALF_WIDTH = 0.35 * heartWidth;
-
-        // --- Tách top/bottom indices (L860-905) ---
-        const HEART_SCALE = innerWidth < 768 ? 0.4 : 0.55;  // mobile thu nhỏ tim cho vừa màn (gốc ~22x19)
-        const hStaticSizes = new Float32Array(hPositions.length / 3);
-        for (let t = 0; t < hStaticSizes.length; t++) hStaticSizes[t] = HEART_SCALE * 0.8 * (0.3 * Math.random() + 0.2);
-
-        const hTopIndices = [];
-        for (let t = 0; t < hPositions.length; t += 3) {
-            if (hPositions[t + 1] > threshold + 0.1 * (Math.random() - 0.5) * (maxY - minY)) hTopIndices.push(t / 3);
-        }
-        const hTopSet = new Set(hTopIndices);
-
-        let hBottomPositions = [];
-        const hBottomColors = [];
-        const hBottomSizes = [];
-        const hTopPositionsArr = [];
-        const hTopColors = [];
-        const hTopSizes = [];
-        const hTopAlpha = [];
-        for (let t = 0; t < hPositions.length; t += 3) {
-            const o = t / 3;
-            const a = hStaticSizes[o];
-            const s = hPositions[t], r = hPositions[t + 1], n = hPositions[t + 2];
-            if (hTopSet.has(o)) {
-                hTopPositionsArr.push(s, r, n);
-                hTopColors.push(heartInitialColor.r, heartInitialColor.g, heartInitialColor.b);
-                hTopSizes.push(a);
-                const isIndent = Math.abs(s) < INDENT_HALF_WIDTH && r > INDENT_Y;
-                hTopAlpha.push(isIndent ? 0 : 1);
-            } else {
-                hBottomPositions.push(s, r, n);
-                hBottomColors.push(heartInitialColor.r, heartInitialColor.g, heartInitialColor.b);
-                hBottomSizes.push(a);
-            }
-        }
-
-        // --- staticHeart (top, L1070-1078) ---
-        const hStaticGeo = new THREE.BufferGeometry();
-        hStaticGeo.setAttribute("position", new THREE.Float32BufferAttribute(hTopPositionsArr, 3));
-        hStaticGeo.setAttribute("color", new THREE.Float32BufferAttribute(hTopColors, 3));
-        hStaticGeo.setAttribute("size", new THREE.Float32BufferAttribute(hTopSizes, 1));
-        hStaticGeo.setAttribute("alpha", new THREE.BufferAttribute(new Float32Array(hTopAlpha), 1));
-        const hMatStatic = makeMat({ map: circleTexture, alphaSupport: true });
-        hMatStatic.alphaTest = 0.5;
-        const staticHeart = new THREE.Points(hStaticGeo, hMatStatic);
-        staticHeart.rotation.z = Math.PI;
-
-        // --- bottomHeart rot/static split (L972-1010) ---
-        const hRotPos = [], hRotColors = [], hRotSizes = [];
-        const hStaticBotPos = [], hStaticBotColors = [], hStaticBotSizes = [];
-        for (let t = 0; t < hBottomPositions.length; t += 3) {
-            if (Math.random() < 0.2) {
-                hRotPos.push(hBottomPositions[t], hBottomPositions[t + 1], hBottomPositions[t + 2]);
-                hRotColors.push(heartInitialColor.r, heartInitialColor.g, heartInitialColor.b);
-                hRotSizes.push(hBottomSizes[t / 3]);
-            } else {
-                hStaticBotPos.push(hBottomPositions[t], hBottomPositions[t + 1], hBottomPositions[t + 2]);
-                hStaticBotColors.push(heartInitialColor.r, heartInitialColor.g, heartInitialColor.b);
-                hStaticBotSizes.push(hBottomSizes[t / 3]);
-            }
-        }
-
-        // --- bottomHeart (L1038-1067) ---
-        const hBottomGeo = new THREE.BufferGeometry();
-        hBottomGeo.setAttribute("position", new THREE.Float32BufferAttribute(hRotPos, 3));
-        hBottomGeo.setAttribute("color", new THREE.Float32BufferAttribute(hRotColors, 3));
-        hBottomGeo.setAttribute("size", new THREE.Float32BufferAttribute(hRotSizes, 1));
-        hBottomGeo.setAttribute("alpha", new THREE.BufferAttribute(new Float32Array(hRotPos.length / 3).fill(1), 1));
-        const hMatBottom = makeMat({ map: circleTexture, alphaSupport: true, vClipSlope: 0.3, clipFrontZ: 0.3 });
-        hMatBottom.alphaTest = 0.5;
-        const bottomHeart = new THREE.Points(hBottomGeo, hMatBottom);
-        bottomHeart.rotation.z = Math.PI;
-
-        // --- staticBottomHeart (L1120-1141) ---
-        let staticBottomHeart = null;
-        if (hStaticBotPos.length > 0) {
-            const g = new THREE.BufferGeometry();
-            g.setAttribute("position", new THREE.Float32BufferAttribute(hStaticBotPos, 3));
-            g.setAttribute("color", new THREE.Float32BufferAttribute(hStaticBotColors, 3));
-            g.setAttribute("size", new THREE.Float32BufferAttribute(hStaticBotSizes, 1));
-            const mat = makeMat({ map: circleTexture, alphaSupport: true });
-            mat.alphaTest = 0.5;
-            g.setAttribute("alpha", new THREE.BufferAttribute(new Float32Array(hStaticBotPos.length / 3).fill(1), 1));
-            staticBottomHeart = new THREE.Points(g, mat);
-            staticBottomHeart.rotation.z = Math.PI;
-        }
-
-        // --- staticTopHeart (L1079-1118) ---
-        let staticTopHeart = null;
-        {
-            const tArr = [], eArr = [], oArr = [];
-            for (let a = 0; a < hTopPositionsArr.length; a += 3) {
-                const inside = calculateMinimumDistanceToBorder(
-                    hTopPositionsArr[a] + 5, hTopPositionsArr[a + 1] + 7
-                ) < BORDER_THRESHOLD || Math.random() < 0.3;
-                if (Math.random() < 0.5 && inside) {
-                    tArr.push(hTopPositionsArr[a], hTopPositionsArr[a + 1], hTopPositionsArr[a + 2]);
-                    eArr.push(heartInitialColor.r, heartInitialColor.g, heartInitialColor.b);
-                    oArr.push(hTopSizes[Math.floor(a / 3)]);
-                }
-            }
-            if (tArr.length) {
-                const g = new THREE.BufferGeometry();
-                g.setAttribute("position", new THREE.Float32BufferAttribute(tArr, 3));
-                g.setAttribute("color", new THREE.Float32BufferAttribute(eArr, 3));
-                g.setAttribute("size", new THREE.Float32BufferAttribute(oArr, 1));
-                g.setAttribute("alpha", new THREE.BufferAttribute(new Float32Array(tArr.length / 3).fill(1), 1));
-                const mat = makeMat({ map: circleTexture, alphaSupport: true });
-                mat.alphaTest = 0.5;
-                staticTopHeart = new THREE.Points(g, mat);
-                staticTopHeart.rotation.z = Math.PI;
-            }
-        }
-
-        // --- Group + đặt phía trên lõi cầu ---
-        const heartGroup = new THREE.Group();
-        heartGroup.add(staticHeart);
-        heartGroup.add(bottomHeart);
-        if (staticBottomHeart) heartGroup.add(staticBottomHeart);
-        if (staticTopHeart) heartGroup.add(staticTopHeart);
-        heartGroup.scale.setScalar(HEART_SCALE);  // co nhỏ (shape gốc ~22x19) để khớp quy mô galaxy
-        const HEART_Y = 19;
-        heartGroup.position.set(0, HEART_Y, 0);    // trên lõi cầu (bán kính ~10)
-        scene.add(heartGroup);
-
-        // === 3D text sprites cạnh trái tim (typewriter giống Heart_Valentine) ===
-        // Heart center world: (0, 19, 0); sau scale 0.55, bán kính ngang ~6, dọc ~5.25
-        const TEXT_X = IS_MOBILE ? 0 : 16;                    // cạnh phải tim, gap vừa
-        const TITLE_Y = HEART_Y + (IS_MOBILE ? 6.5 : 1.3);
-        const MSG_Y   = HEART_Y + (IS_MOBILE ? 4 : -1.4);
-
-        function makeTextSprite(canvasW, canvasH, px) {
-            const c = document.createElement('canvas');
-            c.width = canvasW * px; c.height = canvasH * px;
-            const ctx = c.getContext('2d');
-            ctx.scale(px, px);
-            const tex = new THREE.CanvasTexture(c);
-            tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
-            const mat = new THREE.SpriteMaterial({
-                map: tex, transparent: true, depthTest: false, depthWrite: false
-            });
-            mat.toneMapped = false;
-            return { sprite: new THREE.Sprite(mat), canvas: c, ctx, texture: tex, w: canvasW, h: canvasH };
-        }
-
-        function drawGlowText(ctx, text, x, y, font, color) {
-            ctx.textAlign = 'left';
-            ctx.textBaseline = 'middle';
-            ctx.font = font;
-            ctx.shadowColor = 'rgba(255, 20, 147, 0.85)';
-            ctx.shadowBlur = 28;
-            ctx.fillStyle = color;
-            ctx.fillText(text, x, y);
-            ctx.shadowColor = 'rgba(255, 105, 180, 0.85)';
-            ctx.shadowBlur = 16;
-            ctx.fillText(text, x, y);
-            ctx.shadowBlur = 6;
-            ctx.fillText(text, x, y);
-            ctx.shadowBlur = 0;
-            ctx.fillText(text, x, y);
-        }
-
-        // --- Title sprite (static) ---
-        const TITLE_CW = 1024, TITLE_CH = 200;
-        const titleObj = makeTextSprite(TITLE_CW, TITLE_CH, 2);
-        const titleSpriteW = 13;
-        titleObj.sprite.scale.set(titleSpriteW, titleSpriteW * TITLE_CH / TITLE_CW, 1);
-        titleObj.sprite.position.set(TEXT_X, TITLE_Y, 0);
-        titleObj.sprite.renderOrder = 1200;
-        scene.add(titleObj.sprite);
-
-        const MAIN_TITLE_TEXT = __APP_CONFIG__.title || 'Tri ân thầy cô · 20/11';
-        function drawTitle() {
-            const c = titleObj.ctx;
-            c.clearRect(0, 0, TITLE_CW, TITLE_CH);
-            let size=78;
-            do {
-                c.font=`400 ${size}px "Pacifico", cursive`;
-                if(c.measureText(MAIN_TITLE_TEXT).width<=TITLE_CW-64)break;
-                size-=2;
-            } while(size>20);
-            drawGlowText(c, MAIN_TITLE_TEXT, 12, TITLE_CH / 2,
-                `400 ${size}px "Pacifico", cursive`, '#ff4d8a');
-            titleObj.texture.needsUpdate = true;
-        }
-        drawTitle();
-        // Pacifico load async từ Google Fonts → vẽ lại khi font sẵn sàng
-        if (document.fonts && document.fonts.ready) {
-            document.fonts.ready.then(drawTitle);
-        }
-
-        // --- Messages sprite (typewriter cycle) ---
-        const MSG_CW = 1024, MSG_CH = 130;
-        const msgObj = makeTextSprite(MSG_CW, MSG_CH, 2);
-        const msgSpriteW = 13;
-        msgObj.sprite.scale.set(msgSpriteW, msgSpriteW * MSG_CH / MSG_CW, 1);
-        msgObj.sprite.position.set(TEXT_X, MSG_Y, 0);
-        msgObj.sprite.renderOrder = 1200;
-        scene.add(msgObj.sprite);
-
-        const msgList = (Array.isArray(__APP_CONFIG__.messages) && __APP_CONFIG__.messages.length)
-            ? __APP_CONFIG__.messages
-            : [
-                "Thầy cô là những vì sao dẫn lối chúng em.",
-                "Mỗi kỷ niệm dưới mái trường là một vì sao sáng.",
-                "20/11 · Ngàn lời tri ân gửi đến thầy cô.",
-                "Từ một trang vở nhỏ, mở ra cả bầu trời ước mơ."
-            ];
-        const MSG_FONT_BASE = 48;
-        const msgFontAt = (px) => `italic 500 ${px}px "Mali", "Noto Sans", sans-serif`;
-        let MSG_FONT = msgFontAt(MSG_FONT_BASE);
-        // auto-fit font size theo câu dài nhất để không bị tràn canvas
-        (function fitMsgFont() {
-            const probeCtx = msgObj.ctx;
-            const padding = 12 + 12 + 4 + 3; // left padding + cursor gap + cursor width
-            let size = MSG_FONT_BASE;
-            for (const s of msgList) {
-                let cur = MSG_FONT_BASE;
-                while (cur > 14) {
-                    probeCtx.font = msgFontAt(cur);
-                    if (probeCtx.measureText(s).width + padding <= MSG_CW) break;
-                    cur -= 1;
-                }
-                if (cur < size) size = cur;
-            }
-            MSG_FONT = msgFontAt(size);
-        })();
-        let msgIdx = 0, msgChar = 0, msgPhase = 'typing', msgPhaseT = 0;
-        let cursorBlink = 0, cursorVis = true, msgLastTime = null;
-        // Cache để skip redraw khi không có gì đổi (mobile: tránh upload 1024x130 texture mỗi frame)
-        let lastDrawnIdx = -1, lastDrawnChar = -1, lastDrawnCursor = null;
-
+        repaintGreeting();
+        document.fonts?.ready.then(repaintGreeting);
         function updateMessageSprite(elapsed) {
-            if (msgLastTime == null) { msgLastTime = elapsed; }
-            const dt = Math.min(0.1, elapsed - msgLastTime);
-            msgLastTime = elapsed;
-
-            cursorBlink += dt;
-            if (cursorBlink > 0.4) { cursorVis = !cursorVis; cursorBlink = 0; }
-            msgPhaseT += dt;
-
-            const full = msgList[msgIdx];
-            if (msgPhase === 'typing' && msgPhaseT > 0.07) {
-                msgPhaseT = 0; msgChar++;
-                if (msgChar >= full.length) { msgChar = full.length; msgPhase = 'hold'; msgPhaseT = 0; }
-            } else if (msgPhase === 'hold' && msgPhaseT > 1.8) {
-                msgPhase = 'erasing'; msgPhaseT = 0;
-            } else if (msgPhase === 'erasing' && msgPhaseT > 0.035) {
-                msgPhaseT = 0; msgChar--;
-                if (msgChar <= 0) { msgChar = 0; msgPhase = 'wait'; msgPhaseT = 0; }
-            } else if (msgPhase === 'wait' && msgPhaseT > 0.4) {
-                msgIdx = (msgIdx + 1) % msgList.length;
-                msgPhase = 'typing'; msgPhaseT = 0;
-            }
-
-            // Frame này không có gì đổi → skip clearRect/drawGlowText/needsUpdate
-            if (msgIdx === lastDrawnIdx && msgChar === lastDrawnChar && cursorVis === lastDrawnCursor) return;
-            lastDrawnIdx = msgIdx; lastDrawnChar = msgChar; lastDrawnCursor = cursorVis;
-
-            const c = msgObj.ctx;
-            c.clearRect(0, 0, MSG_CW, MSG_CH);
-            const visText = full.substring(0, msgChar);
-            drawGlowText(c, visText, 12, MSG_CH / 2, MSG_FONT, 'rgba(255, 255, 255, 0.96)');
-            if (cursorVis) {
-                c.save();
-                c.font = MSG_FONT;
-                c.textAlign = 'left';
-                c.textBaseline = 'middle';
-                const m = c.measureText(visText);
-                c.shadowColor = '#ff4d8a';
-                c.shadowBlur = 12;
-                c.fillStyle = '#ff4d8a';
-                c.fillRect(12 + m.width + 4, MSG_CH / 2 - 24, 3, 48);
-                c.restore();
-            }
-            msgObj.texture.needsUpdate = true;
+            const index = Math.floor(elapsed / 5) % messages.length;
+            if (index === lastGreeting) return;
+            lastGreeting = index;
+            paintGreeting(messageGreeting, messages[index], '"Mali", sans-serif', 46, '#fff3df');
         }
 
-        // --- Reveal: hạt từ lõi cầu bay lên tụ thành tim (4s, easeOutCubic) ---
+        // Particles gather from the galaxy core into the lotus garden.
         const REVEAL_DURATION = 5.5;
         let revealStart = null;
         let revealDone = false;
-        const revealData = heartGroup.children.map(h => {
+        const revealData = symbolGroup.children.filter(h => h.isPoints).map(h => {
             const posAttr = h.geometry.attributes.position;
             const target = new Float32Array(posAttr.array);
             const start = new Float32Array(target.length);
@@ -678,9 +401,9 @@
                 const wy = r * Math.cos(phi);
                 const wz = r * Math.sin(phi) * Math.sin(theta);
                 // world → child local: inverse group (translate + scale), rồi inverse child rotation.z=PI
-                start[i * 3]     = -(wx / HEART_SCALE);
-                start[i * 3 + 1] = -((wy - HEART_Y) / HEART_SCALE);
-                start[i * 3 + 2] =  (wz / HEART_SCALE);
+                start[i * 3]     = wx / SYMBOL_SCALE;
+                start[i * 3 + 1] = (wy - SYMBOL_Y) / SYMBOL_SCALE;
+                start[i * 3 + 2] =  (wz / SYMBOL_SCALE);
             }
             // khởi tạo vị trí ở sphere để frame đầu không flash
             posAttr.array.set(start);
@@ -697,6 +420,7 @@
             const afterimagePass = new AfterimagePass();
             afterimagePass.uniforms['damp'].value = 0.82;
             composer.addPass(afterimagePass);
+            composer.setSize(viewport.width, viewport.height);
         }
 
         // === Rải thưa ảnh vào đĩa xoáy (L88-95): tổng ~100 ảnh ===
@@ -737,15 +461,12 @@
         photoFiles.forEach((file, fileIdx) => {
             const positions = new Float32Array(pointsPerPhoto * 3);
             const rIn = 16, rOut = 85;
-            const slice = (Math.PI * 2) / pointsPerPhoto;
-
+            const slice = Math.PI * 2 / pointsPerPhoto;
             for (let i = 0; i < pointsPerPhoto; i++) {
                 const radius = Math.sqrt(rIn * rIn + Math.random() * (rOut * rOut - rIn * rIn));
                 const theta = (i + fileIdx / numPhotos + Math.random()) * slice;
-                const y = (Math.random() - 0.5) * 2;
-
                 positions[i * 3] = Math.cos(theta) * radius;
-                positions[i * 3 + 1] = y;
+                positions[i * 3 + 1] = (Math.random() - 0.5) * 2;
                 positions[i * 3 + 2] = Math.sin(theta) * radius;
             }
 
@@ -832,7 +553,7 @@ viewer.addEventListener('keydown', event => {
 });
 document.getElementById('gallery-open').addEventListener('click', () => openPhoto(0));
 const cinematic = createGalaxyCinematic({
-    THREE, scene, camera, controls, heartGroup, canvas: renderer.domElement, reducedMotion,
+    THREE, scene, camera, controls, symbolGroup, canvas: renderer.domElement, reducedMotion,
     onStart() { clearTimeout(idleTimer); controls.autoRotate = false; },
     onEnd() { resetIdleTimer(); },
 });
@@ -842,7 +563,9 @@ const raycaster = new THREE.Raycaster();
 raycaster.params.Points.threshold = 1.25;
 const pointer = new THREE.Vector2();
 function photoAt(clientX, clientY) {
-    pointer.set(clientX / innerWidth * 2 - 1, -clientY / innerHeight * 2 + 1);
+    const point = canvasPointer(clientX, clientY, renderer.domElement.getBoundingClientRect());
+    if (!point) return null;
+    pointer.set(point.x, point.y);
     camera.updateMatrixWorld();
     p.updateWorldMatrix(true, true);
     raycaster.setFromCamera(pointer, camera);
@@ -950,11 +673,7 @@ renderer.setAnimationLoop(() => {
         });
         if (progress >= 1) revealDone = true;
     }
-    if (revealDone) {
-        const beat = reducedMotion ? 0 : Math.sin(elapsed * Math.PI);
-        heartGroup.scale.setScalar(HEART_SCALE * (1 + 0.05 * beat));
-        heartGroup.children.forEach(heart => { heart.material.opacity = 0.85 + 0.15 * beat; });
-    }
+    knowledgeSymbol.update(elapsed);
     cinematic.update(viewer.open ? 0 : frameDelta);
     if (composer) composer.render();
     else renderer.render(scene, camera);

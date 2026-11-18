@@ -1,43 +1,46 @@
 // Chỉ cần sửa tệp này để đổi tên, lời chúc, ảnh và nhạc cho lớp của bạn.
 window.GIFT_CONFIG = {
-  title: '20/11 · Gửi ngàn lời tri ân',
-  recipient: 'thầy cô',
-  sender: 'Những học trò của thầy cô',
-  letterTitle: 'Kính gửi thầy cô,',
+  title: '20/11 · Món quà nhỏ gửi cô',
+  recipient: 'cô',
+  sender: 'Tập thể lớp 11 Tin',
+  letterTitle: 'Gửi cô,',
   letter: [
-    'Có những bài học không nằm trên trang vở, mà theo chúng em suốt cả cuộc đời. Đó là sự kiên nhẫn, lòng tử tế và niềm tin thầy cô đã dành cho chúng em.',
-    'Nhân ngày Nhà giáo Việt Nam 20/11, chúng em kính chúc thầy cô luôn mạnh khỏe, bình an và hạnh phúc. Mong mỗi ngày đến lớp của thầy cô đều có thật nhiều nụ cười.',
-    'Cảm ơn thầy cô vì những lần giảng lại bài, những lời động viên đúng lúc và vì đã không bỏ cuộc với bất kỳ học trò nào. Dẫu mai này đi đến đâu, chúng em vẫn luôn nhớ về mái trường và người đã chắp cánh ước mơ.',
-    'Chúc mừng ngày 20/11. Chúng em thương và biết ơn thầy cô thật nhiều!'
+    'Nhân ngày Nhà giáo Việt Nam 20/11, tập thể lớp 11 Tin chúng em chúc cô luôn mạnh khỏe, vui vẻ, hạnh phúc và gặp nhiều điều tốt đẹp trong cuộc sống.',
+    'Chúng em muốn cảm ơn cô vì đã luôn quan tâm, dạy dỗ và đồng hành cùng lớp trong suốt thời gian qua. Cảm ơn cô vì những bài giảng, những lời động viên và cả những lần nhắc nhở để chúng em ngày càng tiến bộ hơn.',
+    'Chúng em biết đôi khi lớp vẫn còn những lúc chưa ngoan, chưa thực sự tập trung và khiến cô phải nhắc nhở nhiều. Chúng em sẽ cố gắng học tập tốt hơn, có ý thức hơn và cùng nhau xây dựng một tập thể đoàn kết để cô yên tâm hơn về lớp.',
+    'Cuối cùng, chúng em mong cô luôn giữ gìn sức khỏe, có thật nhiều niềm vui trong công việc và cuộc sống. Hy vọng cô và lớp mình sẽ có thêm thật nhiều kỷ niệm đẹp trong thời gian sắp tới. Chúc cô có một ngày 20/11 thật vui và ý nghĩa!'
   ],
-  photos: [
-    { src: 'assets/images/class-1.jpg', caption: 'Những ngày bên nhau ♡', alt: 'Các bạn học sinh cùng chụp ảnh trong lớp học' },
-    { src: 'assets/images/class-2.jpg', caption: 'Một thời áo trắng ♡', alt: 'Kỷ niệm thời học sinh bên hành lang trường' },
-    { src: 'assets/images/class-3.jpg', caption: 'Thanh xuân dưới mái trường', alt: 'Tập thể lớp cùng nhau trên sân trường' }
-  ],
+  // Ảnh kỷ niệm dùng chung cho album, phần quà và thiên hà.
+  photos: Array.from({ length: 48 }, (_, index) => ({
+    src: index === 32 ? 'image/anh45.jpg' : `image/anh${index + 1}.jpg`,
+    caption: ['Kỷ niệm của lớp 11 Tin', 'Những khoảnh khắc đáng nhớ', 'Cô và chúng em'][index % 3],
+    alt: `Ảnh kỷ niệm ${index + 1}`
+  })),
   music: 'assets/music/opening.mp3',
   musicVolume: 0.5,
   giftMusic: 'vendor/gift/assets/music/gift.mp3',
   giftMusicVolume: 0.55,
   galaxyMusic: 'assets/music/galaxy.mp3',
   galaxyMusicVolume: 0.55,
-  bouquetTitle: 'Một bó hoa, ngàn lời cảm ơn',
-  bouquetMessage: 'Kính tặng thầy cô những đóa hoa tươi thắm nhất. Cảm ơn người đã lặng lẽ vun trồng những mùa hoa tri thức.',
-  scratchMessage: 'Món quà lớn nhất chúng em muốn gửi đến thầy cô: lời hứa sẽ luôn cố gắng, sống tử tế và trưởng thành mỗi ngày.',
-  finalMessage: 'Dẫu đi muôn phương, vẫn nhớ người dẫn lối.',
+  bouquetTitle: '11 Tin gửi cô',
+  bouquetNote: [],
+  bouquetMessage: '20 · 11 · 2026',
+  scratchMessage: 'Chúng em sẽ cố gắng chăm học hơn, chú ý nghe giảng và bớt để cô phải nhắc nhở.',
+  finalMessage: 'Chúc cô luôn mạnh khỏe, vui vẻ, hạnh phúc và có thật nhiều niềm vui trong cuộc sống. Cảm ơn cô vì tất cả những điều cô đã dành cho chúng em!',
+  finalePortrait: 'image/anh12.jpg',
   galaxy: {
-    title: 'Thầy cô · Người thắp sáng ước mơ',
+    title: 'Chúc mừng ngày Nhà giáo Việt Nam',
     messages: [
-      'Thầy cô là những vì sao dẫn lối chúng em.',
-      'Từ một trang vở nhỏ, mở ra cả bầu trời ước mơ.',
-      'Mỗi kỷ niệm dưới mái trường là một vì sao sáng.',
-      'Dẫu đi muôn phương, chúng em vẫn nhớ người dẫn lối.',
-      '20/11 · Ngàn lời tri ân gửi đến thầy cô.'
+      'Chúc cô luôn mạnh khỏe.',
+      'Luôn vui vẻ và hạnh phúc.',
+      'Mọi việc đều thuận lợi.',
+      'Luôn tràn đầy năng lượng.',
+      'Chúc cô ngày 20/11 thật ý nghĩa.'
     ]
   },
   // Đổi thành true để thêm màn hình nhập mã như mẫu Lovegift.
   enablePasscode: false,
   passcode: '2011',
   passcodeHint: 'Gợi ý: Ngày Nhà giáo Việt Nam, gồm 4 chữ số.',
-  particleMessages: ['Cảm ơn thầy cô', 'Người gieo ước mơ', '20 · 11']
+  particleMessages: ['20 · 11', 'Nhân ngày Nhà giáo Việt Nam', 'Tập thể lớp 11 Tin']
 };

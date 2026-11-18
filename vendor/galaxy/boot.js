@@ -7,7 +7,7 @@ try {
   await import('./scene.js');
 } catch (error) {
   console.error('Galaxy could not start:', error);
-  document.getElementById('galaxy-loading').textContent = 'Kỷ niệm bên thầy cô';
+  document.getElementById('galaxy-loading').textContent = 'Kỷ niệm cùng cô';
   const grid = document.createElement('div');
   grid.className = 'galaxy-fallback';
   const gift = window.parent.GIFT_CONFIG || {};

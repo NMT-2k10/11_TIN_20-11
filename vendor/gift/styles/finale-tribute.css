@@ -11,6 +11,10 @@
 .tribute-eyebrow{margin:0 0 16px;color:#e7cf9e;font:400 11px/1.8 TributeSans,sans-serif;letter-spacing:.28em;text-shadow:0 2px 6px #000}
 .tribute-date{display:flex;justify-content:center;align-items:center;gap:22px;font:clamp(70px,8vw,118px)/1 Georgia,'Times New Roman',serif;color:#ffedc1;letter-spacing:-.035em;text-shadow:0 3px 2px #090812,0 0 35px #eec06930}
 .tribute-date-flower{font:28px Georgia,serif;color:#e9b5bc;letter-spacing:0}
+.tribute-calendar{margin:12px 0 24px;color:#ffedc1;font:400 clamp(60px,7.8vw,108px)/1.15 Georgia,'Times New Roman',serif;letter-spacing:-.035em;text-shadow:0 3px 2px #090812,0 0 35px #eec06930;font-variant-numeric:lining-nums tabular-nums}
+.tribute-calendar time{display:flex;justify-content:center;align-items:baseline;gap:.075em;white-space:nowrap}
+.tribute-calendar-slash{font-size:.60em;color:#d3ac78;font-weight:400;align-self:center}
+.tribute-calendar-year{font-size:.70em;letter-spacing:.01em;color:#edcea1}
 .tribute-title{margin:14px 0 10px;font:600 clamp(44px,5.5vw,76px)/1.25 TributeHand,cursive;color:#fff2dc;text-shadow:0 3px 2px #0a0912,0 0 25px #f1b4c025}
 .tribute-rule{display:flex;align-items:center;justify-content:center;gap:17px;color:#d7ad72;font:18px Georgia,serif;margin:8px auto 18px;max-width:280px}
 .tribute-rule:before,.tribute-rule:after{content:'';height:1px;width:95px;background:linear-gradient(90deg,transparent,#d9b785)}
@@ -36,12 +40,14 @@
 @media(orientation:portrait){
  .tribute-hero{top:44%;width:88vw}.tribute-hero:before{inset:-35px -15px}.tribute-eyebrow{font-size:8px;letter-spacing:.16em;margin-bottom:22px}
  .tribute-date{font-size:85px;gap:16px}.tribute-date-flower{font-size:23px}.tribute-title{font-size:49px;margin-top:20px}.tribute-caption{font-size:13px;margin-bottom:14px;min-height:3.2em;padding:0 10px}
+ .tribute-calendar{font-size:clamp(39px,10.5vw,64px);margin:10px 0 22px}
  .tribute-quote{font-size:23px;max-width:270px}.tribute-signature{font-size:10px;margin-top:22px}.tribute-sky-frame{inset:15px}.tribute-rule{max-width:220px;margin-bottom:16px}
  #finaleScene .fn-hills{height:21vh}#finaleScene .fn-btn{font-size:11px;padding:11px 22px}#finaleScene .fn-hint{font-size:10px;bottom:78px}
 }
 @media(orientation:landscape) and (max-height:600px){
  .tribute-hero{top:43%;width:65vw}.tribute-eyebrow{font-size:8px;margin-bottom:7px}.tribute-date{font-size:55px;gap:14px}.tribute-date-flower{font-size:17px}
  .tribute-title{font-size:39px;margin:4px 0}.tribute-rule{margin:3px auto 7px;font-size:12px}.tribute-caption{font-size:12px;margin-bottom:5px}.tribute-quote{font-size:19px}.tribute-signature{font-size:9px;margin-top:7px}
+ .tribute-calendar{font-size:clamp(40px,6.5vw,68px);margin:6px 0 12px}
  #finaleScene .fn-panel{bottom:12px}#finaleScene .fn-btn{padding:8px 18px;font-size:10px}#finaleScene .fn-hint{bottom:51px;font-size:9px}
 }
 @media(prefers-reduced-motion:reduce){#finaleScene.panel-on .tribute-hero{animation:none}}

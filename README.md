@@ -1,8 +1,8 @@
 # Website tri ân 20/11
 
-Website: https://nmt-2k10.github.io/20-11-tri-an/
+Website: https://nmt-2k10.github.io/11_TIN_20-11/
 
-Repository: https://github.com/NMT-2k10/20-11-tri-an
+Repository: https://github.com/NMT-2k10/11_TIN_20-11
 
 Website tĩnh HTML/CSS/JavaScript, chạy được trên GitHub Pages. Không cần cài thư viện hoặc build để triển khai.
 
@@ -57,6 +57,6 @@ Luồng chính: mở đầu → bảng phấn → hoa tri ân → thước phim 
 
 Thư hiện từng từ theo mẫu Flower Garden. Thước phim tự chạy. Nút “Tiếp tục” ở bảng tri ân mở màn thiên hà; quay lại từ thiên hà sẽ về đúng bảng tri ân.
 
-Xem nhanh bằng `?scene=classroom`, `?scene=flower`, `?scene=memories`, `?scene=gift`, `?scene=galaxy`. `?scene=gift&resume=finale` mở thẳng bảng tri ân để xem thử.
+Xem nhanh bằng `?scene=classroom`, `?scene=flower`, `?scene=memories`, `?scene=gift`, `?scene=galaxy`. `?scene=gift&resume=finale` mở thẳng bảng tri ân để xem thử. `?scene=gift&resume=fireworks` mở thẳng đoạn pháo hoa có chân dung cô sau khi bấm bắt đầu.
 
 Nguồn tham khảo và ghi nhận tác giả nằm trong `vendor/README.md`, `vendor/galaxy/README.md` và các tệp giấy phép đi kèm.

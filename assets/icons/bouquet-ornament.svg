@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" fill="none">
+ <defs>
+  <linearGradient id="rose" x1="75" y1="70" x2="250" y2="265" gradientUnits="userSpaceOnUse"><stop stop-color="#ffe3ed"/><stop offset=".5" stop-color="#e5a8bd"/><stop offset="1" stop-color="#bd859c" stop-opacity=".3"/></linearGradient>
+  <linearGradient id="gold" x1="50" y1="80" x2="270" y2="260" gradientUnits="userSpaceOnUse"><stop stop-color="#e6c28e" stop-opacity=".1"/><stop offset=".5" stop-color="#f6deba"/><stop offset="1" stop-color="#e6c28e" stop-opacity=".1"/></linearGradient>
+  <path id="petal" d="M160 158C128 139 125 104 160 82C195 104 192 139 160 158Z"/>
+ </defs>
+ <g stroke="url(#gold)" stroke-width=".8" opacity=".65"><path d="M76 222A110 110 0 0 1 219 68"/><path d="M244 98A110 110 0 0 1 101 252"/><ellipse cx="160" cy="160" rx="132" ry="99" transform="rotate(-32 160 160)" stroke-dasharray="1 10"/></g>
+ <g stroke="url(#rose)" stroke-width="1.3"><use href="#petal"/><use href="#petal" transform="rotate(60 160 158)"/><use href="#petal" transform="rotate(120 160 158)"/><use href="#petal" transform="rotate(180 160 158)"/><use href="#petal" transform="rotate(240 160 158)"/><use href="#petal" transform="rotate(300 160 158)"/></g>
+ <circle cx="160" cy="158" r="15" fill="#f5cadb" fill-opacity=".10" stroke="#f0cba0" stroke-width="1"/>
+ <circle cx="160" cy="158" r="5" fill="#f6d9b6" fill-opacity=".75"/>
+ <g stroke="url(#gold)" stroke-linecap="round" stroke-width="1"><path d="M70 248Q83 228 87 207M77 235Q59 232 63 218Q77 222 77 235ZM84 218Q98 217 99 204Q87 206 84 218ZM250 72Q237 92 233 113M243 85Q261 88 257 102Q243 98 243 85ZM236 102Q222 103 221 116Q233 114 236 102Z"/></g>
+ <g fill="#f6d9b6"><path d="M67 99L69 105L75 107L69 109L67 115L65 109L59 107L65 105Z"/><path d="M249 213L251 218L256 220L251 222L249 227L247 222L242 220L247 218Z"/><circle cx="214" cy="52" r="2"/><circle cx="103" cy="270" r="2"/><circle cx="278" cy="142" r="1.5"/><circle cx="42" cy="175" r="1.5"/></g>
+</svg>

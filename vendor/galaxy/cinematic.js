@@ -1,14 +1,18 @@
 /* Camera tour adapted from the public reference's cinematic intro:
- * core reveal -> heart arc/panorama -> spiral descent -> fly-through.
+ * core reveal -> symbol arc/panorama -> spiral descent -> fly-through.
  * One timeline is updated by the scene loop; dragging, zooming or Escape
  * cancels it immediately so orbit controls never fight the camera animation.
  */
-export function createGalaxyCinematic({THREE, scene, camera, controls, heartGroup, canvas, reducedMotion, onStart, onEnd}) {
+import { canvasPointer } from './layout.js';
+
+export function createGalaxyCinematic({THREE, scene, camera, controls, symbolGroup, canvas, reducedMotion, onStart, onEnd}) {
     const abort = new AbortController();
     const listen = (element, type, handler, options = {}) => element.addEventListener(type, handler, {...options, signal: abort.signal});
-    const target = new THREE.Mesh(new THREE.SphereGeometry(innerWidth < 768 ? 4.8 : 6.5, 24, 16), new THREE.MeshBasicMaterial({visible: false}));
-    target.name = 'galaxy-heart-target';
-    target.position.copy(heartGroup.position).add(new THREE.Vector3(0, -1, 0));
+    const target = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 16), new THREE.MeshBasicMaterial({visible: false}));
+    const targetRadius = innerWidth < 768 ? 14.8 : 23.5;
+    target.scale.set(targetRadius, 9, innerWidth < 768 ? 13 : 17);
+    target.name = 'galaxy-symbol-target';
+    target.position.copy(symbolGroup.position).add(new THREE.Vector3(0, -1, 0));
     scene.add(target);
     const coreTarget = new THREE.Mesh(new THREE.SphereGeometry(10.5, 24, 16), new THREE.MeshBasicMaterial({visible: false}));
     coreTarget.name = 'galaxy-core-target';
@@ -16,7 +20,7 @@ export function createGalaxyCinematic({THREE, scene, camera, controls, heartGrou
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
     const origin = new THREE.Vector3();
-    const heart = heartGroup.position.clone();
+    const symbol = symbolGroup.position.clone();
     const pose = new THREE.Vector3();
     const look = new THREE.Vector3();
     const baseFov = camera.fov;
@@ -64,16 +68,24 @@ export function createGalaxyCinematic({THREE, scene, camera, controls, heartGrou
         const current = camera.position.clone();
         const currentLook = controls.target.clone();
         controls.enabled = false;
-        const home = innerWidth < 768 ? vector(0, 10, 39) : vector(0, 9, 34);
+        const home = innerWidth < 768 ? vector(0, 9, 56) : vector(0, 9, 39);
+        const homeLook = vector(0, 11, 0);
         const core = vector(0, 0, 3);
-        const heartFront = vector(0, 19, 15);
-        const heartBack = vector(0, 19, -15);
+        // Frame the whole asymmetrical lotus garden in the closest orbit.
+        const bounds = symbolGroup.userData.viewBounds;
+        const worldScale = symbolGroup.scale.x;
+        const halfFov = baseFov * Math.PI / 360;
+        const horizontalFov = Math.atan(Math.tan(halfFov) * camera.aspect);
+        const radius = bounds.radius * worldScale, height = bounds.height * worldScale;
+        const symbolDistance = Math.max(radius / Math.sin(horizontalFov), radius + height / Math.tan(halfFov)) * 1.08;
+        const symbolFront = vector(0, symbol.y, symbolDistance);
+        const symbolBack = vector(0, symbol.y, -symbolDistance);
         const panorama = vector(0, 40, -55);
         const panoramaLook = vector(0, 8, 0);
         const sky = vector(-30, 80, 0);
         const descentEnd = vector(0, 19, 18);
         const flyStart = vector(0, 5, 40);
-        const flyPath = new THREE.CatmullRomCurve3([flyStart, vector(0, -5, 5), heartFront]);
+        const flyPath = new THREE.CatmullRomCurve3([flyStart, vector(0, -5, 5), symbolFront]);
         segments = [
             bridge('enter-core', current, core, currentLook, origin, .9),
             {name: 'zoom-out', duration: 13, sample(t) {
@@ -81,19 +93,20 @@ export function createGalaxyCinematic({THREE, scene, camera, controls, heartGrou
                 if (progress < .2) pose.lerpVectors(core, vector(0, 0, 20), progress / .2);
                 else if (progress < .75) pose.lerpVectors(vector(0, 0, 20), vector(0, 0, 60), (progress - .2) / .55);
                 else pose.lerpVectors(vector(0, 0, 60), home, sine((progress - .75) / .4));
-                look.copy(origin);
+                if (progress < .75) look.copy(origin);
+                else look.lerpVectors(origin, homeLook, sine(Math.min(1, (progress - .75) / .4)));
             }},
-            pause(home, origin, .4),
-            bridge('approach-heart', home, heartFront, origin, heart, 2.5),
+            pause(home, homeLook, .4),
+            bridge('approach-symbol', home, symbolFront, homeLook, symbol, 2.5),
             {name: 'panorama', duration: 10, sample(t) {
                 if (t < .5) {
                     const angle = Math.PI / 2 + Math.PI * smooth(t * 2);
-                    pose.set(Math.cos(angle) * 15, heart.y, Math.sin(angle) * 15);
-                    look.copy(heart);
+                    pose.set(Math.cos(angle) * symbolDistance, symbol.y, Math.sin(angle) * symbolDistance);
+                    look.copy(symbol);
                 } else {
                     const progress = smooth((t - .5) * 2);
-                    pose.lerpVectors(heartBack, panorama, progress);
-                    look.lerpVectors(heart, panoramaLook, progress);
+                    pose.lerpVectors(symbolBack, panorama, progress);
+                    look.lerpVectors(symbol, panoramaLook, progress);
                 }
             }},
             pause(panorama, panoramaLook, .4),
@@ -103,15 +116,15 @@ export function createGalaxyCinematic({THREE, scene, camera, controls, heartGrou
                 const angle = Math.PI + Math.PI * 1.5 * progress;
                 const radius = 30 - 12 * progress;
                 pose.set(Math.cos(angle) * radius, 80 - 61 * progress, Math.sin(angle) * radius);
-                look.lerpVectors(origin, heart, progress);
+                look.lerpVectors(origin, symbol, progress);
             }},
-            bridge('return-home', descentEnd, home, heart, origin, 4),
-            pause(home, origin, .4),
-            bridge('approach-disc', home, flyStart, origin, origin, 1.8),
+            bridge('return-home', descentEnd, home, symbol, homeLook, 4),
+            pause(home, homeLook, .4),
+            bridge('approach-disc', home, flyStart, homeLook, origin, 1.8),
             {name: 'fly-through', duration: 11, sample(t) {
                 const progress = t + .35 * Math.sin(2 * Math.PI * t) / (2 * Math.PI);
                 flyPath.getPoint(progress, pose);
-                look.lerpVectors(origin, heart, progress * progress);
+                look.lerpVectors(origin, symbol, progress * progress);
                 camera.fov = baseFov + 15 * Math.sin(t * Math.PI);
             }},
         ];
@@ -149,7 +162,9 @@ export function createGalaxyCinematic({THREE, scene, camera, controls, heartGrou
         camera.updateProjectionMatrix();
     }
     function pick(x, y) {
-        pointer.set(x / innerWidth * 2 - 1, -y / innerHeight * 2 + 1);
+        const point = canvasPointer(x, y, canvas.getBoundingClientRect());
+        if (!point) return null;
+        pointer.set(point.x, point.y);
         camera.updateMatrixWorld();
         target.updateWorldMatrix(true, false);
         coreTarget.updateWorldMatrix(true, false);
